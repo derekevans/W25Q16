@@ -45,7 +45,7 @@ void W25Q16::init(int FLASH_SS)
  *	Returns :		byte
  *  
  *	Parameters :	unsigned int page ->  The page to read from.
- *					unsigned int pageAddress -> the page address from which a byte
+ *					byte pageAddress -> the page address from which a byte
  												will be read					
  * 
  * 
@@ -74,8 +74,8 @@ byte W25Q16::read(unsigned int page, byte pageAddress) {
  *	Returns :		None
  *  
  *	Parameters :	unsigned int page ->  The page to write to.
- *					unsigned int pageAddress -> The page address to which a byte
- 												will be written.					
+ *					byte pageAddress -> The page address to which a byte
+ *												will be written.					
  * 					byte val -> the byte to write to the page and page address.
  * 
  *	Purpose :	Writes a byte to the flash page and page address.  The W25Q16 has
@@ -95,6 +95,120 @@ void W25Q16::write(unsigned int page, byte pageAddress, byte val) {
     digitalWrite(_FLASH_SS, HIGH);
     notBusy();
     writeDisable();
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : initStreamWrite
+ *  
+ *	Returns :		None
+ *  
+ *	Parameters :	unsigned int page ->  The page to begin writing.
+ *					byte pageAddress -> The page address to to begin
+ *												writing.					
+ * 
+ *	Purpose :	Initializes flash for stream write, e.g. write more than one byte
+ *				consecutively.  Both page and byte addresses start at 0. Page 
+ *				ends at address 8191 and page address ends at 255.
+ * 					
+ ******************************************************************************/
+void W25Q16::initStreamWrite(unsigned int page, byte pageAddress) {
+	writeEnable();
+    digitalWrite(_FLASH_SS, LOW);
+    SPI.transfer(PAGE_PROGRAM);
+    SPI.transfer((page >> 8) & 0xFF);
+    SPI.transfer((page >> 0) & 0xFF);
+    SPI.transfer(pageAddress);
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : streamWrite
+ *  
+ *	Returns :		None
+ *  
+ *	Parameters :	byte val -> the byte to write to the flash.  					
+ * 
+ *	Purpose :	Writes a byte to the W25Q16.  Must be first called after 
+ *				initStreamWrite and then consecutively to write multiple bytes.
+ * 					
+ ******************************************************************************/
+void W25Q16::streamWrite(byte val) {
+	SPI.transfer(val);
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : closeStreamWrite
+ *  
+ *	Returns :		None
+ *  
+ *	Parameters :	None  					
+ * 
+ *	Purpose :	Close the stream write. Must be called after the last call to 
+ *				streamWrite.
+ * 					
+ ******************************************************************************/
+void W25Q16::closeStreamWrite() {
+	digitalWrite(_FLASH_SS, HIGH);
+    notBusy();
+    writeDisable();
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : initStreamRead
+ *  
+ *	Returns :		None
+ *  
+ *	Parameters :	unsigned int page ->  The page to begin reading.
+ *					byte pageAddress -> The page address to to begin
+ *										reading.					
+ * 
+ *	Purpose :	Initializes flash for stream read, e.g. read more than one byte
+ *				consecutively.  Both page and byte addresses start at 0. Page 
+ *				ends at address 8191 and page address ends at 255.
+ * 					
+ ******************************************************************************/
+void W25Q16::initStreamRead(unsigned int page, byte pageAddress) {
+	digitalWrite(_FLASH_SS, LOW);
+  	SPI.transfer(READ_DATA);
+  	SPI.transfer((page >> 8) & 0xFF);
+  	SPI.transfer((page >> 0) & 0xFF);
+  	SPI.transfer(pageAddress);
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : streamRead
+ *  
+ *	Returns :		byte
+ *  
+ *	Parameters :	None					
+ * 
+ *	Purpose :	Reads a byte from the W25Q16.  Must be first called after 
+ *				initStreamRead and then consecutively to write multiple bytes.
+ * 					
+ ******************************************************************************/
+byte W25Q16::streamRead() {
+	return SPI.transfer(0);
+}
+
+/*****************************************************************************
+ * 
+ *	Function name : closeStreamRead
+ *  
+ *	Returns :		None
+ *  
+ *	Parameters :	None  					
+ * 
+ *	Purpose :	Close the stream read. Must be called after the last call to 
+ *				streamRead.
+ * 					
+ ******************************************************************************/
+void W25Q16::closeStreamRead() {
+	digitalWrite(_FLASH_SS, HIGH);
+    notBusy();
 }
 
 /*****************************************************************************
