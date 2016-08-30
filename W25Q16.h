@@ -25,6 +25,12 @@ class W25Q16
 	void init(int FLASH_SS);
     void write(unsigned int page, byte pageAddress, byte val);
     byte read(unsigned int page, byte pageAddress);
+    void initStreamWrite(unsigned int page, byte pageAddress);
+    void streamWrite(byte val);
+    void closeStreamWrite();
+    void initStreamRead(unsigned int page, byte pageAddress);
+    byte streamRead();
+    void closeStreamRead();
 	void powerDown();
 	void releasePowerDown();
     void chipErase();
